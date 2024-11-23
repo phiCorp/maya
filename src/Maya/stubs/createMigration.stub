@@ -1,0 +1,18 @@
+<?php
+
+use Maya\Database\Migrations\Migration;
+use Maya\Database\Migrations\Schema;
+
+return new class extends Migration {
+    public function up()
+    {
+        $this->create('{tableName}', function (Schema $table) {
+            //
+        });
+    }
+
+    public function down()
+    {
+        $this->drop('{tableName}');
+    }
+};

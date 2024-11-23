@@ -1,0 +1,30 @@
+{
+  "name": "phicorp/maya",
+  "description": "maya",
+  "version": "1.0.0",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Fibo",
+      "email": "thephibonacci@gmail.com"
+    }
+  ],
+  "keywords": [
+    "framework",
+    "phi",
+    "DAVINCI",
+    "Maya"
+  ],
+  "require": {
+    "ext-pdo": "*",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "Maya\\": "src/Maya/"
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
