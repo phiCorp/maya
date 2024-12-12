@@ -68,6 +68,66 @@ class Schema
         return $this;
     }
 
+    public function timestamp(string $name, bool $nullable = true, ?string $default = null)
+    {
+        $column = "$name TIMESTAMP";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function bigInteger(string $name, bool $unsigned = false, bool $nullable = true, ?int $default = null)
+    {
+        $column = "$name BIGINT";
+        if ($unsigned) $column .= " UNSIGNED";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function json(string $name, bool $nullable = true)
+    {
+        $column = "$name JSON";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function blob(string $name, bool $nullable = true)
+    {
+        $column = "$name BLOB";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function bigId(string $name = 'id')
+    {
+        $this->columns[] = "$name BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY";
+        return $this;
+    }
+
+    public function date(string $name, bool $nullable = true, ?string $default = null)
+    {
+        $column = "$name DATE";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function datetime(string $name, bool $nullable = true, ?string $default = null)
+    {
+        $column = "$name DATETIME";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+
     public function unique(string $column)
     {
         $this->constraints[] = "UNIQUE ($column)";
@@ -144,25 +204,46 @@ class Schema
         $this->connection->exec($query);
     }
 
-    public function addColumn(string $definition)
+    public function addColumn(string $name, string $type, bool $nullable = true, ?string $default = null, ?string $after = null)
     {
-        $query = "ALTER TABLE {$this->table} ADD $definition";
-        $this->connection->exec($query);
+        $column = "$name $type";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        if ($after !== null) $column .= " AFTER $after";
+
+        $this->columns[] = "ADD $column";
         return $this;
     }
 
-    public function dropColumn(string $column)
+    public function modifyColumn(string $name, string $type, bool $nullable = true, ?string $default = null, ?string $after = null)
     {
-        $query = "ALTER TABLE {$this->table} DROP COLUMN $column";
-        $this->connection->exec($query);
+        $column = "$name $type";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        if ($after !== null) $column .= " AFTER $after";
+
+        $this->columns[] = "MODIFY $column";
+        return $this;
+    }
+
+
+    public function dropColumn(string $name)
+    {
+        $this->columns[] = "DROP COLUMN $name";
         return $this;
     }
 
     public function renameColumn(string $oldName, string $newName, string $type)
     {
-        $query = "ALTER TABLE {$this->table} CHANGE $oldName $newName $type";
-        $this->connection->exec($query);
+        $this->columns[] = "CHANGE $oldName $newName $type";
         return $this;
+    }
+
+    public function buildAlterQuery()
+    {
+        $alterations = implode(", ", $this->columns);
+        $query = "ALTER TABLE {$this->table} $alterations";
+        $this->connection->exec($query);
     }
 
     public function rename(string $newName)

@@ -104,3 +104,36 @@ Nova::command('migrate', function (ArgHandler $request, Iris $iris) {
         $iris->error('Migrations', $e->getMessage());
     }
 })->description('Run Migrations');
+
+Nova::command('migrate:rollback', function (ArgHandler $request, Iris $iris) {
+    try {
+        $step = $request->hasOption('step') && is_numeric($request->option('step')) ? intval($request->option('step')) : 1;
+        (new DBBuilder)->down($request->option('database') ?? 'default', $step);
+        $iris->success('Rollback Successfuly');
+    } catch (Exception $e) {
+        $iris->error('Migrations', $e->getMessage());
+    }
+})->description('Rollback Migrations');
+
+Nova::command('migrate:reset', function (ArgHandler $request, Iris $iris) {
+    try {
+        (new DBBuilder)->down($request->option('database') ?? 'default', null);
+        $iris->success('Rollback Successfuly');
+    } catch (Exception $e) {
+        $iris->error('Migrations', $e->getMessage());
+    }
+})->description('Rollback All Migrations');
+
+Nova::command('migrate:refresh', function (ArgHandler $request, Iris $iris) {
+    try {
+        (new DBBuilder)->down($request->option('database') ?? 'default', null);
+        (new DBBuilder)->up($request->option('database') ?? 'default');
+        $iris->success('Refresh Migrations Successfuly');
+    } catch (Exception $e) {
+        $iris->error('Migrations', $e->getMessage());
+    }
+})->description('Rollback All Migrations and Migrate Again');
+
+Nova::command('help', function () {
+    Nova::showHelp();
+})->description('helps');

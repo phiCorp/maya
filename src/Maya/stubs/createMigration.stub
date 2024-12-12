@@ -13,6 +13,6 @@ return new class extends Migration {
 
     public function down()
     {
-        $this->drop('{tableName}');
+        $this->dropIfExists('{tableName}');
     }
 };
