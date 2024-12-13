@@ -44,6 +44,153 @@ class Schema
         return $this;
     }
 
+    public function decimal(string $name, int $precision = 10, int $scale = 2, bool $nullable = true, ?string $default = null)
+    {
+        $column = "$name DECIMAL($precision, $scale)";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function float(string $name, bool $nullable = true, ?float $default = null)
+    {
+        $column = "$name FLOAT";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function double(string $name, bool $nullable = true, ?float $default = null)
+    {
+        $column = "$name DOUBLE";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function year(string $name, bool $nullable = true, ?int $default = null)
+    {
+        $column = "$name YEAR";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function time(string $name, bool $nullable = true, ?string $default = null)
+    {
+        $column = "$name TIME";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function set(string $name, array $values, bool $nullable = true, ?string $default = null)
+    {
+        $valueList = "'" . implode("', '", $values) . "'";
+        $column = "$name SET($valueList)";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT '$default'";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function mediumInt(string $name, bool $unsigned = false, bool $nullable = true, ?int $default = null)
+    {
+        $column = "$name MEDIUMINT";
+        if ($unsigned) $column .= " UNSIGNED";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function mediumText(string $name, bool $nullable = true)
+    {
+        $column = "$name MEDIUMTEXT";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function longText(string $name, bool $nullable = true)
+    {
+        $column = "$name LONGTEXT";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function mediumBlob(string $name, bool $nullable = true)
+    {
+        $column = "$name MEDIUMBLOB";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function longBlob(string $name, bool $nullable = true)
+    {
+        $column = "$name LONGBLOB";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function binary(string $name, int $length = 255, bool $nullable = true)
+    {
+        $column = "$name BINARY($length)";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function varBinary(string $name, int $length = 255, bool $nullable = true)
+    {
+        $column = "$name VARBINARY($length)";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function geometry(string $name, bool $nullable = true)
+    {
+        $column = "$name GEOMETRY";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function point(string $name, bool $nullable = true)
+    {
+        $column = "$name POINT";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function polygon(string $name, bool $nullable = true)
+    {
+        $column = "$name POLYGON";
+        if (!$nullable) $column .= " NOT NULL";
+        $this->columns[] = $column;
+        return $this;
+    }
+
+    public function tinyInt(string $name, int $length = 3, bool $unsigned = false, bool $nullable = true, ?int $default = null)
+    {
+        $column = "$name TINYINT($length)";
+        if ($unsigned) $column .= " UNSIGNED";
+        if (!$nullable) $column .= " NOT NULL";
+        if ($default !== null) $column .= " DEFAULT $default";
+        $this->columns[] = $column;
+        return $this;
+    }
+
     public function boolean(string $name, bool $nullable = true, ?bool $default = null)
     {
         $column = "$name BOOLEAN";
