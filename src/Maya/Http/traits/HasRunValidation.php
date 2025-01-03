@@ -37,10 +37,6 @@ trait HasRunValidation
 
     private function setError($name, $errorMessage): void
     {
-        $customErrorMessage = $this->customErrorMessages[$name] ?? null;
-        if ($customErrorMessage) {
-            $errorMessage = $customErrorMessage;
-        }
         $this->errorVariablesName[] = $name;
         error($name, $errorMessage);
         $this->errorExist = true;

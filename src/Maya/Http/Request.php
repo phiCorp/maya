@@ -16,7 +16,6 @@ class Request
     protected $query = [];
     protected $files = null;
     protected $errorVariablesName = [];
-    protected $customErrorMessages = [];
     protected $url = null;
 
     public function __construct()
@@ -27,7 +26,6 @@ class Request
         if (!empty($_FILES)) {
             $this->files = $_FILES;
         }
-        $this->customErrorMessages = $this->customErrorMessages();
         empty($rules) ?: $this->runValidation($rules);
         return $this->errorRedirect();
     }
@@ -54,16 +52,6 @@ class Request
     {
         $this->runValidation($rules);
         return $this->errorRedirect();
-    }
-
-    protected function customErrorMessages()
-    {
-        return [];
-    }
-
-    public function setCustomErrorMessages($customErrorMessages)
-    {
-        $this->customErrorMessages = $customErrorMessages;
     }
 
     protected function rules()
