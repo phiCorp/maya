@@ -169,13 +169,14 @@ class Routing
 
     private function handleResponse($result)
     {
+        if ($result instanceof Redirect) {
+            $result->exec();
+        }
         if (is_array($result) || is_object($result)) {
             response()->json($result, 200, options: JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
         }
         if (is_string($result) || is_numeric($result)) {
             echo $result;
-        } elseif ($result instanceof Redirect) {
-            $result->exec();
         }
     }
 }

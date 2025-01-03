@@ -245,21 +245,36 @@ class Application extends Container
 
     private function setupErrorHandling(): void
     {
-        set_error_handler([$this, 'handleError']);
-        set_exception_handler([$this, 'handleError']);
+        set_error_handler([$this, 'handlePhpError']);
+        set_exception_handler([$this, 'handleException']);
         register_shutdown_function([$this, 'handleShutdown']);
     }
 
-    public function handleError($error): void
+    public function handlePhpError(int $errno, string $errstr, string $errfile, int $errline): void
     {
-        $this->errorHandler->handle($error);
+        if (!(error_reporting() & $errno)) {
+            return;
+        }
+
+        throw new \ErrorException($errstr, 0, $errno, $errfile, $errline);
+    }
+
+    public function handleException(Throwable $exception): void
+    {
+        $this->errorHandler->handle($exception);
     }
 
     public function handleShutdown(): void
     {
         $error = error_get_last();
-        if ($error !== null) {
-            $this->errorHandler->handle($error);
+        if ($error !== null && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR])) {
+            $this->errorHandler->handle(new \ErrorException(
+                $error['message'],
+                0,
+                $error['type'],
+                $error['file'],
+                $error['line']
+            ));
         }
     }
 

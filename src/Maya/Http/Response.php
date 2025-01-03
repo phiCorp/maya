@@ -36,6 +36,16 @@ class Response
         app()->terminate();
     }
 
+    public function api(string $message, $data = [], int $status = 200, array $headers = [], int $options = 0)
+    {
+        $headers = array_merge(['Content-Type' => 'application/json'], $headers);
+        return $this->json([
+            'message' => $message,
+            'status' => $status,
+            'data' => $data
+        ], $status, $headers, $options);
+    }
+
     public function redirect(?string $to = null, int $status = 302, array $headers = [], ?bool $secure = null)
     {
         return redirect($to, $status, $headers, $secure);

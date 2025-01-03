@@ -27,7 +27,7 @@ class Request
         if (!empty($_FILES)) {
             $this->files = $_FILES;
         }
-        $this->customErrorMessages = [];
+        $this->customErrorMessages = $this->customErrorMessages();
         empty($rules) ?: $this->runValidation($rules);
         return $this->errorRedirect();
     }
@@ -54,6 +54,21 @@ class Request
     {
         $this->runValidation($rules);
         return $this->errorRedirect();
+    }
+
+    protected function customErrorMessages()
+    {
+        return [];
+    }
+
+    public function setCustomErrorMessages($customErrorMessages)
+    {
+        $this->customErrorMessages = $customErrorMessages;
+    }
+
+    protected function rules()
+    {
+        return [];
     }
 
     public function host()
@@ -102,7 +117,7 @@ class Request
 
     private function setArrayValue($name, $value, &$array)
     {
-        $array[$name] = htmlentities($value, ENT_QUOTES, 'UTF-8');
+        $array[$name] = htmlentities($value ?? '', ENT_QUOTES, 'UTF-8');
     }
 
     public function __get($name)
