@@ -30,6 +30,24 @@ class Storage
         return $path ? $root . DIRECTORY_SEPARATOR . $path : $root;
     }
 
+    public static function upload(string $path, array $file, string $disk = 'local'): bool
+    {
+        if (!isset($file['tmp_name']) || !is_uploaded_file($file['tmp_name'])) {
+            throw new Exception("Invalid file upload.");
+        }
+
+        $destination = self::path($path, $disk);
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            if (self::$config['logging']) {
+                self::log('upload', $destination, $disk, $file['type']);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
     protected static function getDiskRoot(string $disk): string
     {
         if (!isset(self::$config['disks'][$disk])) {

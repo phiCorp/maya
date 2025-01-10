@@ -2,6 +2,8 @@
 
 namespace Maya\System;
 
+use App\Middlewares\CorsMiddleware;
+use App\Middlewares\CsrfMiddleware;
 use Dotenv\Dotenv;
 use Exception;
 use Maya\Console\Nova;
@@ -28,7 +30,7 @@ use Throwable;
 class Application extends Container
 {
     /** @var string The Davinci framework version. */
-    const VERSION = '1.1.1';
+    const VERSION = '1.2.1';
 
     protected $basePath;
     protected $configPath;
@@ -214,11 +216,15 @@ class Application extends Container
 
     private function registerRoutes(): void
     {
-        foreach (glob(basePath('/Routes/*.php')) as $path) {
-            if ($path == basePath('/Routes/console.php')) {
-                continue;
-            }
-            require_once($path);
+        if (file_exists(basePath('/Routes/api.php'))) {
+            Route::group(['prefix' => '/api'], function () {
+                require_once(basePath('/Routes/api.php'));
+            });
+        }
+        if (file_exists(basePath('/Routes/web.php'))) {
+            Route::group(['middleware' => [CorsMiddleware::class, CsrfMiddleware::class]], function () {
+                require_once(basePath('/Routes/web.php'));
+            });
         }
     }
     private function registerConsoleRoute(): void
