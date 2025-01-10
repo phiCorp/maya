@@ -28,7 +28,7 @@ use Throwable;
 class Application extends Container
 {
     /** @var string The Davinci framework version. */
-    const VERSION = '1.0.0';
+    const VERSION = '1.1.1';
 
     protected $basePath;
     protected $configPath;
@@ -36,6 +36,7 @@ class Application extends Container
     protected $storagePath;
     protected $assetsPath;
     protected $mayaPath;
+    protected $publicPath;
     private ErrorHandler $errorHandler;
 
     /**
@@ -85,6 +86,7 @@ class Application extends Container
         $this->instance('path.storage', $this->storagePath());
         $this->instance('path.assets', $this->assetsPath());
         $this->instance('path.maya', $this->mayaPath());
+        $this->instance('path.public', $this->mayaPath());
     }
     public function configPath()
     {
@@ -104,6 +106,16 @@ class Application extends Container
     {
         $this->storagePath = $path;
         $this->instance('path.storage', $path);
+        return $this;
+    }
+    public function publicPath($path = '')
+    {
+        return $this->joinPaths($this->publicPath ?: $this->basePath('public'), $path);
+    }
+    public function usePublicPath($path)
+    {
+        $this->publicPath = $path;
+        $this->instance('path.public', $path);
         return $this;
     }
     public function assetsPath($path = '')

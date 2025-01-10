@@ -12,7 +12,7 @@ class Storage
         'default_disk' => 'local',
         'disks' => [
             'local' => [
-                'root' => 'Storage',
+                'root' => '/',
             ],
             'temp' => [
                 'root' => 'Storage/temp',
@@ -35,8 +35,11 @@ class Storage
         if (!isset(self::$config['disks'][$disk])) {
             throw new Exception("Disk '{$disk}' is not configured.");
         }
-        return rtrim(self::$config['disks'][$disk]['root'], DIRECTORY_SEPARATOR);
+        $root = self::$config['disks'][$disk]['root'];
+
+        return rtrim(storagePath($root), DIRECTORY_SEPARATOR);
     }
+
 
     public static function exists(string $path, string $disk = 'local'): bool
     {
@@ -125,7 +128,7 @@ class Storage
             throw new Exception("File not found: {$fullPath}");
         }
 
-        $signature = hash_hmac('sha256', $fullPath . time(), 'secret_key');
+        $signature = hash_hmac('sha256', $fullPath . time(), config('APP.KEY'));
         $expiresAt = time() + $expires;
 
         return "/download?path={$fullPath}&expires={$expiresAt}&signature={$signature}";
@@ -144,7 +147,7 @@ class Storage
             return false;
         }
 
-        $expectedSignature = hash_hmac('sha256', $query['path'] . $query['expires'], 'secret_key');
+        $expectedSignature = hash_hmac('sha256', $query['path'] . $query['expires'], config('APP.KEY'));
         return hash_equals($expectedSignature, $query['signature']);
     }
 

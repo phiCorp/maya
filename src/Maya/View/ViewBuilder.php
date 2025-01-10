@@ -73,9 +73,10 @@ class ViewBuilder
         preg_match_all('/{{\s*(.*?)\s*}}/', $this->content, $matches);
         foreach ($matches[0] as $key => $match) {
             $expression = $matches[1][$key];
-            $this->content = str_replace($match, "<?= htmlentities($expression) ?>", $this->content);
+            $this->content = str_replace($match, "<?= htmlentities($expression, ENT_QUOTES, 'UTF-8') ?>", $this->content);
         }
     }
+
     private function checkOpenPHP(): void
     {
         preg_match_all('/{{{\s*(.*?)\s*}}}/', $this->content, $matches);
@@ -116,7 +117,7 @@ class ViewBuilder
     {
         $this->content = preg_replace('/@foreach\s*\((.*)\)/', '<?php foreach($1): ?>', $this->content);
         $this->content = preg_replace('/@endforeach/', '<?php endforeach; ?>', $this->content);
-        $this->content = preg_replace('/@forelse\s*\((.*?)\s+as\s+(.*?)\)\s*$/m', '<?php if (!empty($1)): foreach($1 as $2): ?>', $this->content);
+        $this->content = preg_replace('/@forelse\s*\((.*?)\s+as\s+(.*?)\)/', '<?php if (!empty($1)): foreach($1 as $2): ?>', $this->content);
         $this->content = preg_replace('/@empty/', '<?php endforeach; else: ?>', $this->content);
         $this->content = preg_replace('/@endforelse/', '<?php endif; ?>', $this->content);
     }
@@ -150,7 +151,13 @@ class ViewBuilder
 
     private function checkRouteFinder(): void
     {
-        $this->content = preg_replace('/@route\s*\((.*)\)/', '<?= htmlentities(route($1)) ?>', $this->content);
+        $this->content = preg_replace_callback(
+            '/@route\((.*?)\)/',
+            function ($matches) {
+                return "<?= htmlentities(route({$matches[1]}), ENT_QUOTES, 'UTF-8') ?>";
+            },
+            $this->content
+        );
     }
 
     private function checkIsSet(): void
@@ -169,9 +176,9 @@ class ViewBuilder
     private function checkConditional(): void
     {
         $this->content = str_replace('@endif', '<?php endif; ?>', $this->content);
-        $this->content = preg_replace('/@elseif\s*\((.*)\)/s', '<?php elseif($1): ?>', $this->content);
+        $this->content = preg_replace('/@elseif\s*\((.*)\)/', '<?php elseif($1): ?>', $this->content);
         $this->content = str_replace('@else', '<?php else: ?>', $this->content);
-        $this->content = preg_replace('/@if\s*\((.*)\)/s', '<?php if($1): ?>', $this->content);
+        $this->content = preg_replace('/@if\s*\((.*)\)/', '<?php if($1): ?>', $this->content);
     }
 
     private function checkCSRF(): void
@@ -183,22 +190,27 @@ class ViewBuilder
     {
         $this->content = preg_replace('/@method\s*\((.*)\)/', '<?= get_methodField_input($1) ?>', $this->content);
     }
+
     private function checkCecked(): void
     {
-        $this->content = preg_replace('/@checked\s*\((.*)\)/', '<?php echo ($1) ? "checked" : ""  ?>', $this->content);
+        $this->content = preg_replace('/@checked\s*\((.*)\)/', '<?= ($1) ? "checked" : "" ?>', $this->content);
     }
+
     private function checkSelected(): void
     {
-        $this->content = preg_replace('/@selected\s*\((.*)\)/', '<?php echo ($1) ? "selected" : ""  ?>', $this->content);
+        $this->content = preg_replace('/@selected\s*\((.*)\)/', '<?= ($1) ? "selected" : "" ?>', $this->content);
     }
+
     private function checkDisabled(): void
     {
-        $this->content = preg_replace('/@disabled\s*\((.*)\)/', '<?php echo ($1) ? "disabled" : ""  ?>', $this->content);
+        $this->content = preg_replace('/@disabled\s*\((.*)\)/', '<?= ($1) ? "disabled" : "" ?>', $this->content);
     }
+
     private function checkReadOnly(): void
     {
-        $this->content = preg_replace('/@readonly\s*\((.*)\)/', '<?php echo ($1) ? "readonly" : ""  ?>', $this->content);
+        $this->content = preg_replace('/@readonly\s*\((.*)\)/', '<?= ($1) ? "readonly" : "" ?>', $this->content);
     }
+
     private function checkContinue(): void
     {
         $this->content = preg_replace('/@continue\s*\((.*)\)/', '<?php if ($1) continue; ?>', $this->content);

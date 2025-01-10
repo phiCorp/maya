@@ -26,35 +26,38 @@ class Request
         if (!empty($_FILES)) {
             $this->files = $_FILES;
         }
-        empty($rules) ?: $this->runValidation($rules);
+        $rules = $this->rules();
+        empty($rules) ?: $this->runValidation($rules, $this->validatorMessages());
         return $this->errorRedirect();
     }
 
-    protected function runValidation($rules): void
+    protected function runValidation($rules, $messages = []): void
     {
         foreach ($rules as $att => $values) {
-            if (is_string($values)) {
-                $ruleArray = explode('|', $values);
-            } else {
-                $ruleArray = $values;
-            }
+            $ruleArray = is_string($values) ? explode('|', $values) : $values;
+            $customMessages = $messages[$att] ?? [];
             if (in_array('file', $ruleArray)) {
                 unset($ruleArray[array_search('file', $ruleArray)]);
-                $this->fileValidation($att, $ruleArray);
+                $this->fileValidation($att, $ruleArray, $customMessages);
             } elseif (in_array('number', $ruleArray)) {
-                $this->numberValidation($att, $ruleArray);
+                $this->numberValidation($att, $ruleArray, $customMessages);
             } else {
-                $this->normalValidation($att, $ruleArray);
+                $this->normalValidation($att, $ruleArray, $customMessages);
             }
         }
     }
-    public function validate(array $rules)
+    public function validate(array $rules, array $messages = [])
     {
-        $this->runValidation($rules);
+        $this->runValidation($rules, $messages);
         return $this->errorRedirect();
     }
 
     protected function rules()
+    {
+        return [];
+    }
+
+    protected function validatorMessages()
     {
         return [];
     }
@@ -193,7 +196,10 @@ class Request
         return $_SERVER[$key] ?? $default;
     }
 
-    public function user() {}
+    public function user()
+    {
+        return user();
+    }
 
     public function headers()
     {

@@ -7,161 +7,162 @@ use Maya\Database\Connection\Connection;
 trait HasValidationRules
 {
 
-    public function normalValidation($name, $ruleArray): void
+    public function normalValidation($name, $ruleArray, $messages): void
     {
         foreach ($ruleArray as $rule) {
+            $customMessage = $messages[$rule] ?? null;
             if ($rule == 'required') {
-                $this->required($name);
+                $this->required($name, $customMessage);
             } elseif (str_starts_with($rule, "max:")) {
                 $rule = str_replace('max:', "", $rule);
-                $this->maxStr($name, $rule);
+                $this->maxStr($name, $rule, $customMessage);
             } elseif (str_starts_with($rule, "min:")) {
                 $rule = str_replace('min:', "", $rule);
-                $this->minStr($name, $rule);
+                $this->minStr($name, $rule, $customMessage);
             } elseif (str_starts_with($rule, "exists:")) {
                 $rule = str_replace('exists:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->existsIn($name, $rule[0], $key, $connection);
+                $this->existsIn($name, $rule[0], $key, $connection, $customMessage);
             } elseif (str_starts_with($rule, "unique:")) {
                 $rule = str_replace('unique:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->unique($name, $rule[0], $key, $connection);
+                $this->unique($name, $rule[0], $key, $connection, $customMessage);
             } elseif ($rule == 'confirmed') {
-                $this->confirm($name);
+                $this->confirm($name, $customMessage);
             } elseif ($rule == 'email') {
-                $this->email($name);
+                $this->email($name, $customMessage);
             } elseif ($rule == 'date') {
-                $this->date($name);
+                $this->date($name, $customMessage);
             } elseif (str_starts_with($rule, "regex:")) {
                 $rule = str_replace('regex:', "", $rule);
-                $this->regex($name, $rule);
+                $this->regex($name, $rule, $customMessage);
             }
         }
     }
 
-
-    public function numberValidation($name, $ruleArray): void
+    public function numberValidation($name, $ruleArray, $messages): void
     {
         foreach ($ruleArray as $rule) {
+            $customMessage = $messages[$rule] ?? null;
             if ($rule == 'required')
-                $this->required($name);
+                $this->required($name, $customMessage);
             elseif (str_starts_with($rule, "max:")) {
                 $rule = str_replace('max:', "", $rule);
-                $this->maxNumber($name, $rule);
+                $this->maxNumber($name, $rule, $customMessage);
             } elseif (str_starts_with($rule, "min:")) {
                 $rule = str_replace('min:', "", $rule);
-                $this->minNumber($name, $rule);
+                $this->minNumber($name, $rule, $customMessage);
             } elseif (str_starts_with($rule, "exists:")) {
                 $rule = str_replace('exists:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->existsIn($name, $rule[0], $key, $connection);
+                $this->existsIn($name, $rule[0], $key, $connection, $customMessage);
             } elseif ($rule == 'number') {
-                $this->number($name);
+                $this->number($name, $customMessage);
             } elseif (str_starts_with($rule, "regex:")) {
                 $rule = str_replace('regex:', "", $rule);
-                $this->regex($name, $rule);
+                $this->regex($name, $rule, $customMessage);
             }
         }
     }
 
-    protected function regex($name, $regex)
+    protected function regex($name, $regex, $messages = null)
     {
         if ($this->checkFieldExist($name)) {
             if (!preg_match($regex, $this->request[$name]) && $this->checkFirstError($name)) {
-                $this->setError($name, "error message for regex");
+                $this->setError($name, $messages ?? "error message for regex");
             }
         }
     }
 
-    protected function maxStr($name, $count): void
+    protected function maxStr($name, $count, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if (strlen($this->request[$name]) > $count && $this->checkFirstError($name)) {
-                $this->setError($name, "max length equal or lower than $count character");
+                $this->setError($name, $messages ?? "max length equal or lower than $count character");
             }
         }
     }
 
-    protected function minStr($name, $count): void
+    protected function minStr($name, $count, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if (strlen($this->request[$name]) < $count && $this->checkFirstError($name)) {
-                $this->setError($name, "min length equal or upper than $count character");
+                $this->setError($name, $messages ?? "min length equal or upper than $count character");
             }
         }
     }
 
-    protected function maxNumber($name, $count): void
+    protected function maxNumber($name, $count, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if ($this->request[$name] > $count && $this->checkFirstError($name)) {
-                $this->setError($name, "max number equal or lower than $count character");
+                $this->setError($name, $messages ?? "max number equal or lower than $count character");
             }
         }
     }
 
-    protected function minNumber($name, $count): void
+    protected function minNumber($name, $count, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if ($this->request[$name] < $count && $this->checkFirstError($name)) {
-                $this->setError($name, "min number equal or upper than $count character");
+                $this->setError($name, $messages ?? "min number equal or upper than $count character");
             }
         }
     }
 
-    protected function required($name): void
+    protected function required($name, $messages = null): void
     {
         if ((!isset($this->request[$name]) || $this->request[$name] === '') && $this->checkFirstError($name)) {
-            $this->setError($name, "$name is required");
+            $this->setError($name, $messages ?? "$name is required");
         }
     }
 
-    protected function number($name): void
+    protected function number($name, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if (!is_numeric($this->request[$name]) && $this->checkFirstError($name)) {
-                $this->setError($name, "$name must be number format");
+                $this->setError($name, $messages ?? "$name must be number format");
             }
         }
     }
 
-    protected function date($name): void
+    protected function date($name, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if (!preg_match("/^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$/", $this->request[$name]) && $this->checkFirstError($name)) {
-                $this->setError($name, "$name must be date format");
+                $this->setError($name, $messages ?? "$name must be date format");
             }
         }
     }
 
-    protected function email($name): void
+    protected function email($name, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if (!filter_var($this->request[$name], FILTER_VALIDATE_EMAIL) && $this->checkFirstError($name)) {
-                $this->setError($name, "$name must be email format");
+                $this->setError($name, $messages ?? "$name must be email format");
             }
         }
     }
 
-    protected function confirm($name): void
+    protected function confirm($name, $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             $fieldName = "confirm_" . $name;
             if (!isset($this->$fieldName)) {
                 $this->setError($name, " $name $fieldName not exist");
             } elseif ($this->$fieldName != $this->$name) {
-                $this->setError($name, "$name confirmation does not match");
+                $this->setError($name, $messages ?? "$name confirmation does not match");
             }
         }
     }
 
-    public function existsIn($name, $table, $field = "id", $connection = 'default'): void
+    public function existsIn($name, $table, $field = "id", $connection = 'default', $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if ($this->checkFirstError($name)) {
@@ -171,13 +172,13 @@ trait HasValidationRules
                 $statement->execute([$value]);
                 $result = $statement->fetchColumn();
                 if ($result == 0) {
-                    $this->setError($name, "$name not already exist");
+                    $this->setError($name, $messages ?? "$name not already exist");
                 }
             }
         }
     }
 
-    public function unique($name, $table, $field = "id", $connection = 'default'): void
+    public function unique($name, $table, $field = "id", $connection = 'default', $messages = null): void
     {
         if ($this->checkFieldExist($name)) {
             if ($this->checkFirstError($name)) {
@@ -187,7 +188,7 @@ trait HasValidationRules
                 $statement->execute([$value]);
                 $result = $statement->fetchColumn();
                 if ($result != 0) {
-                    $this->setError($name, "$name must be unique");
+                    $this->setError($name, $messages ?? "$name must be unique");
                 }
             }
         }
