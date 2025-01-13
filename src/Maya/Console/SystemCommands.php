@@ -43,7 +43,7 @@ Nova::command('serve', function (ArgHandler $request, Iris $iris) {
 
     $iris->info("Starting server on port {$port}...");
     try {
-        exec('php -S 127.0.0.1:' . $port . ' public/index.php');
+        exec('php -S 127.0.0.1:' . $port . ' router.php');
     } catch (\Exception $e) {
         $iris->error("Failed to start the server: " . $e->getMessage());
     }
