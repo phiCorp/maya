@@ -357,6 +357,11 @@ function mayaPath($path = '')
     return app()->mayaPath($path);
 }
 
+function publicPath($path = '')
+{
+    return app()->publicPath($path);
+}
+
 
 
 /*
