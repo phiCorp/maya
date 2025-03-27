@@ -13,7 +13,9 @@ class View
 
         $compiledPath = self::getCompiledPath($dir);
         $viewPath = self::getViewPath($dir);
-        if (!file_exists($compiledPath) || filemtime($compiledPath) < filemtime($viewPath)) {
+        $cacheEnabled = config('VIEW.CACHE', true);
+
+        if (!$cacheEnabled || !file_exists($compiledPath) || filemtime($compiledPath) < filemtime($viewPath)) {
             $viewBuilder = new ViewBuilder();
             $viewBuilder->run($dir);
 
@@ -23,9 +25,11 @@ class View
 
             file_put_contents($compiledPath, html($viewBuilder->content));
         }
+        extract(Composer::getVars());
         extract($data);
         require_once($compiledPath);
     }
+
 
     public static function exists(string $dir): bool
     {

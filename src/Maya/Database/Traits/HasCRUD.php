@@ -64,15 +64,43 @@ trait HasCRUD
         return [];
     }
 
-    protected function findMethod($id)
+    protected function findMethod($id, array $array = [])
     {
-
-        $this->setSql("SELECT * FROM " . $this->getTableName());
+        if (empty($array)) {
+            $fields = $this->getTableName() . '.*';
+        } else {
+            foreach ($array as $key => $field) {
+                $array[$key] = $this->getAttributeName($field);
+            }
+            $fields = implode(' , ', $array);
+        }
+        $this->setSql("SELECT {$fields} FROM " . $this->getTableName());
         $this->setWhere("AND", $this->getAttributeName($this->primaryKey) . " = ? ");
         $this->addValue($id);
         $statement = $this->executeQuery();
         $data = $statement->fetch();
-        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save']);
+        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save', 'restore', 'forceDelete']);
+        if ($data)
+            return $this->arrayToAttributes($data);
+        return null;
+    }
+
+    protected function findFromMethod($attribute, $value, array $array = [])
+    {
+        if (empty($array)) {
+            $fields = $this->getTableName() . '.*';
+        } else {
+            foreach ($array as $key => $field) {
+                $array[$key] = $this->getAttributeName($field);
+            }
+            $fields = implode(' , ', $array);
+        }
+        $this->setSql("SELECT {$fields} FROM " . $this->getTableName());
+        $this->setWhere("AND", $this->getAttributeName($attribute) . " = ? ");
+        $this->addValue($value);
+        $statement = $this->executeQuery();
+        $data = $statement->fetch();
+        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save', 'restore', 'forceDelete']);
         if ($data)
             return $this->arrayToAttributes($data);
         return null;
@@ -96,10 +124,9 @@ trait HasCRUD
             $this->setWhere($operator, $condition);
         }
 
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
-
 
     protected function orWhereMethod($attribute, $firstValue = null, $secondValue = null): static
     {
@@ -119,7 +146,7 @@ trait HasCRUD
             $this->setWhere($operator, $condition);
         }
 
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -129,7 +156,7 @@ trait HasCRUD
         $condition = $this->getAttributeName($attribute) . ' IS NULL ';
         $operator = 'AND';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -139,17 +166,16 @@ trait HasCRUD
         $condition = $this->getAttributeName($attribute) . ' IS NULL ';
         $operator = 'OR';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
     protected function whereNotNullMethod($attribute): static
     {
-
         $condition = $this->getAttributeName($attribute) . ' IS NOT NULL ';
         $operator = 'AND';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -159,42 +185,36 @@ trait HasCRUD
         $condition = $this->getAttributeName($attribute) . ' IS NOT NULL ';
         $operator = 'OR';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
-    protected function whereInMethod($attribute, $values)
+    protected function whereInMethod($attribute, array $values)
     {
-
-        if (is_array($values)) {
-            $valuesArray = [];
-            foreach ($values as $value) {
-                $this->addValue($value);
-                $valuesArray[] = '?';
-            }
-            $condition = $this->getAttributeName($attribute) . ' IN (' . implode(' , ', $valuesArray) . ')';
-            $operator = 'AND';
-            $this->setWhere($operator, $condition);
-            $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
-            return $this;
+        $valuesArray = [];
+        foreach ($values as $value) {
+            $this->addValue($value);
+            $valuesArray[] = '?';
         }
+        $condition = $this->getAttributeName($attribute) . ' IN (' . implode(' , ', $valuesArray) . ')';
+        $operator = 'AND';
+        $this->setWhere($operator, $condition);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
+        return $this;
     }
 
-    protected function orWhereInMethod($attribute, $values)
+    protected function orWhereInMethod($attribute, array $values)
     {
-
-        if (is_array($values)) {
-            $valuesArray = [];
-            foreach ($values as $value) {
-                $this->addValue($value);
-                $valuesArray[] = '?';
-            }
-            $condition = $this->getAttributeName($attribute) . ' IN (' . implode(' , ', $valuesArray) . ')';
-            $operator = 'OR';
-            $this->setWhere($operator, $condition);
-            $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get',]);
-            return $this;
+        $valuesArray = [];
+        foreach ($values as $value) {
+            $this->addValue($value);
+            $valuesArray[] = '?';
         }
+        $condition = $this->getAttributeName($attribute) . ' IN (' . implode(' , ', $valuesArray) . ')';
+        $operator = 'OR';
+        $this->setWhere($operator, $condition);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
+        return $this;
     }
 
     protected function whereBetweenMethod($attribute, $firstValue, $secondValue): static
@@ -204,7 +224,7 @@ trait HasCRUD
         $this->addValue($secondValue);
         $operator = 'AND';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'whereBetween', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -215,7 +235,7 @@ trait HasCRUD
         $this->addValue($secondValue);
         $operator = 'OR';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'whereBetween', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -227,7 +247,7 @@ trait HasCRUD
         }
         $operator = 'AND';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'whereRaw', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -239,7 +259,7 @@ trait HasCRUD
         }
         $operator = 'OR';
         $this->setWhere($operator, $condition);
-        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'whereRaw', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get']);
+        $this->setAllowedMethods(['orWhereNull', 'orWhereNotNull', 'orWhereIn', 'whereBetween', 'orWhereBetween', 'whereRaw', 'orWhereRaw', 'where', 'orWhere', 'whereIn', 'whereNull', 'whereNotNull', 'limit', 'orderBy', 'oldest', 'latest', 'first', 'last', 'get', 'count']);
         return $this;
     }
 
@@ -258,7 +278,7 @@ trait HasCRUD
     protected function orderByMethod($attribute = 'created_at', $expression = "ASC"): static
     {
         $this->setOrderBy($attribute, $expression);
-        $this->setAllowedMethods(['limit', 'first', 'last', 'orderBy', 'oldest', 'latest', 'get',]);
+        $this->setAllowedMethods(['limit', 'first', 'last', 'oldest', 'latest', 'get', 'orderBy']);
         return $this;
     }
 
@@ -272,13 +292,12 @@ trait HasCRUD
         return $this->orderByMethod($attribute, 'DESC');
     }
 
-    protected function limitMethod($from, $number): static
+    protected function limitMethod($number = 25, $from = 0): static
     {
         $this->setLimit($from, $number);
-        $this->setAllowedMethods(['limit', 'first', 'last', 'get',]);
+        $this->setAllowedMethods(['limit', 'first', 'last', 'get', 'oldest', 'latest']);
         return $this;
     }
-
 
     protected function getMethod($array = [])
     {
@@ -303,20 +322,28 @@ trait HasCRUD
         return [];
     }
 
+    public function countMethod($attribute = '*')
+    {
+        $this->setSql("SELECT COUNT($attribute) as count FROM " . $this->getTableName());
+        $statement = $this->executeQuery();
+        $data = $statement->fetch();
+        return $data['count'];
+    }
+
     public function firstMethod($array = [])
     {
-        $this->limitMethod(0, 1);
+        $this->limitMethod(1, 0);
         $result = $this->getMethod($array);
-        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save']);
+        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save', 'restore', 'forceDelete']);
         return count($result) > 0 ? $result[0] : null;
     }
 
     public function lastMethod($array = [])
     {
         $this->orderByMethod($this->primaryKey, 'desc');
-        $this->limitMethod(0, 1);
+        $this->limitMethod(1, 0);
         $result = $this->getMethod($array);
-        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save']);
+        $this->setAllowedMethods(['increment', 'decrement', 'update', 'delete', 'save', 'restore', 'forceDelete']);
         return count($result) > 0 ? $result[0] : null;
     }
 
@@ -344,10 +371,9 @@ trait HasCRUD
             }
         }
         $this->resetQuery();
-        $this->setAllowedMethods(['update', 'delete', 'find']);
+        $this->setAllowedMethods(['update', 'delete', 'find', 'findFrom', 'increment', 'decrement', 'save', 'restore', 'forceDelete']);
         return $this;
     }
-
 
     protected function fill(): string
     {
@@ -363,4 +389,5 @@ trait HasCRUD
         }
         return implode(', ', $fillArray);
     }
+
 }

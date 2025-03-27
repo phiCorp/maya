@@ -16,7 +16,7 @@ class Nova
 
     public static function systemCommands()
     {
-        require 'systemCommands.php';
+        require 'SystemCommands.php';
     }
 
     public static function init()

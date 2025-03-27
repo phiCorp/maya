@@ -2,7 +2,6 @@
 
 namespace Maya\Database\Traits;
 
-use Maya\Database\Connection\Connection;
 use Maya\Database\Model\MonitorQuery;
 use PDOStatement;
 
@@ -14,6 +13,7 @@ trait HasQueryBuilder
     private $orderBy = [];
     private $limit = [];
     private $bindValues = [];
+    private $ignoreDeletedAt = false;
 
     protected function setSql($query): void
     {
@@ -30,10 +30,19 @@ trait HasQueryBuilder
         $this->sql = '';
     }
 
+    protected function ignoreDeletedAt(): void
+    {
+        $this->ignoreDeletedAt = true;
+    }
+
     protected function setWhere($operator, $condition): void
     {
-        $array = ['operator' => $operator, 'condition' => $condition];
-        $this->where[] = $array;
+        if ($this->ignoreDeletedAt) {
+            if (strpos($condition, $this->getAttributeName($this->deletedAt) . ' IS NULL ') !== false) {
+                return;
+            }
+        }
+        $this->where[] = ['operator' => $operator, 'condition' => $condition];
     }
 
     protected function resetWhere(): void
@@ -92,10 +101,12 @@ trait HasQueryBuilder
         $this->resetOrderBy();
         $this->resetLimit();
         $this->removeValues();
+        $this->ignoreDeletedAt = false;
     }
 
     protected function executeQuery(): bool|PDOStatement
     {
+        $startTime = microtime(true);
         $query = $this->sql;
 
         if (!empty($this->where)) {
@@ -134,7 +145,11 @@ trait HasQueryBuilder
         $pdoInstance = $this->getConnection();
         $statement = $pdoInstance->prepare($query);
         sizeof($this->bindValues) > 0 ? $statement->execute($this->bindValues) : $statement->execute();
-        MonitorQuery::logQueryToArray($query, $this->bindValues, $this->connection);
+        $executionTime = microtime(true) - $startTime;
+        $formattedTime = $executionTime < 1
+            ? round($executionTime * 1000) . 'MS'
+            : round($executionTime, 3) . 'S';
+        MonitorQuery::logQueryToArray($query, $this->bindValues, $this->connection, $formattedTime);
         return $statement;
     }
 

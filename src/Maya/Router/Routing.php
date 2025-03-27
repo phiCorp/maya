@@ -47,6 +47,9 @@ class Routing
 
     private function match(): array
     {
+        if (!isset($this->routes[$this->method_field])) {
+            return [];
+        }
         $reservedRoutes = $this->routes[$this->method_field];
         foreach ($reservedRoutes as $reservedRoute) {
             if ($this->compare($reservedRoute['uri'], $reservedRoute['wheres'])) {

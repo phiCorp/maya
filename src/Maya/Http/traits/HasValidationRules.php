@@ -15,22 +15,22 @@ trait HasValidationRules
                 $this->required($name, $customMessage);
             } elseif (str_starts_with($rule, "max:")) {
                 $rule = str_replace('max:', "", $rule);
-                $this->maxStr($name, $rule, $customMessage);
+                $this->maxStr($name, $rule, $messages['max'] ?? null);
             } elseif (str_starts_with($rule, "min:")) {
                 $rule = str_replace('min:', "", $rule);
-                $this->minStr($name, $rule, $customMessage);
+                $this->minStr($name, $rule, $message['min'] ?? null);
             } elseif (str_starts_with($rule, "exists:")) {
                 $rule = str_replace('exists:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->existsIn($name, $rule[0], $key, $connection, $customMessage);
+                $this->existsIn($name, $rule[0], $key, $connection, $messages['exists'] ?? null);
             } elseif (str_starts_with($rule, "unique:")) {
                 $rule = str_replace('unique:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->unique($name, $rule[0], $key, $connection, $customMessage);
+                $this->unique($name, $rule[0], $key, $connection, $messages['unique'] ?? null);
             } elseif ($rule == 'confirmed') {
                 $this->confirm($name, $customMessage);
             } elseif ($rule == 'email') {
@@ -39,7 +39,7 @@ trait HasValidationRules
                 $this->date($name, $customMessage);
             } elseif (str_starts_with($rule, "regex:")) {
                 $rule = str_replace('regex:', "", $rule);
-                $this->regex($name, $rule, $customMessage);
+                $this->regex($name, $rule, $messages['regex'] ?? null);
             }
         }
     }
@@ -52,21 +52,21 @@ trait HasValidationRules
                 $this->required($name, $customMessage);
             elseif (str_starts_with($rule, "max:")) {
                 $rule = str_replace('max:', "", $rule);
-                $this->maxNumber($name, $rule, $customMessage);
+                $this->maxNumber($name, $rule, $messages['max'] ?? null);
             } elseif (str_starts_with($rule, "min:")) {
                 $rule = str_replace('min:', "", $rule);
-                $this->minNumber($name, $rule, $customMessage);
+                $this->minNumber($name, $rule, $messages['min'] ?? null);
             } elseif (str_starts_with($rule, "exists:")) {
                 $rule = str_replace('exists:', "", $rule);
                 $rule = explode(',', $rule);
                 $key = !isset($rule[1]) ? null : $rule[1];
                 $connection = $rule[2] ?? 'default';
-                $this->existsIn($name, $rule[0], $key, $connection, $customMessage);
+                $this->existsIn($name, $rule[0], $key, $connection, $messages['exists'] ?? null);
             } elseif ($rule == 'number') {
                 $this->number($name, $customMessage);
             } elseif (str_starts_with($rule, "regex:")) {
                 $rule = str_replace('regex:', "", $rule);
-                $this->regex($name, $rule, $customMessage);
+                $this->regex($name, $rule, $messages['regex'] ?? null);
             }
         }
     }

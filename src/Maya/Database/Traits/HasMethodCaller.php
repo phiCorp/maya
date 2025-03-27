@@ -2,66 +2,48 @@
 
 namespace Maya\Database\Traits;
 
+use BadMethodCallException;
+
 trait HasMethodCaller
 {
 
-    private $allMethods = [
-        'increment',
-        'decrement',
-        'create',
-        'update',
-        'delete',
-        'find',
-        'all',
-        'save',
-        'where',
-        'orWhere',
-        'whereIn',
-        'whereNull',
-        'whereNotNull',
-        'limit',
-        'orderBy',
-        'oldest',
-        'latest',
-        'first',
-        'last',
-        'get',
-        'orWhereNull',
-        'orWhereNotNull',
-        'orWhereIn',
-        'whereBetween',
-        'orWhereBetween',
-        'whereRaw',
-        'orWhereRaw'
-    ];
     private $allowedMethods = [
         'increment',
         'decrement',
         'create',
         'update',
         'delete',
-        'find',
         'all',
-        'save',
+        'find',
+        'findFrom',
         'where',
         'orWhere',
-        'whereIn',
         'whereNull',
-        'whereNotNull',
-        'limit',
-        'orderBy',
-        'oldest',
-        'latest',
-        'first',
-        'last',
-        'get',
         'orWhereNull',
+        'whereNotNull',
         'orWhereNotNull',
+        'whereIn',
         'orWhereIn',
         'whereBetween',
         'orWhereBetween',
         'whereRaw',
-        'orWhereRaw'
+        'orWhereRaw',
+        'orderBy',
+        'oldest',
+        'latest',
+        'limit',
+        'get',
+        'count',
+        'first',
+        'last',
+        'save',
+        'restore',
+        'restoreAll',
+        'restoreFrom',
+        'forceDelete',
+        'forceDeleteAll',
+        'forceDeleteFrom',
+        'withTrashed',
     ];
 
     public function __call($method, $args)
@@ -78,11 +60,13 @@ trait HasMethodCaller
 
     private function methodCaller($object, $method, $args)
     {
-        $methodName = $method . 'Method';
         if (in_array($method, $this->allowedMethods)) {
-            return call_user_func_array(array($object, $methodName), $args);
+            return call_user_func_array(array($object, $method . 'Method'), $args);
+        } else {
+            throw new BadMethodCallException("The method '{$method}' is not allowed or does not exist.");
         }
     }
+
     protected function setAllowedMethods($array): void
     {
         $this->allowedMethods = $array;

@@ -21,7 +21,13 @@ class Request
     public function __construct()
     {
         $this->url = url();
-        $this->request = $this->sanitizeArray($_POST);
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        if (stripos($contentType, 'application/json') !== false) {
+            $input = file_get_contents('php://input');
+            $this->request = $this->sanitizeArray(json_decode($input, true) ?? []);
+        } else {
+            $this->request = $this->sanitizeArray($_POST);
+        }
         $this->query = $this->sanitizeArray($_GET);
         if (!empty($_FILES)) {
             $this->files = $_FILES;
@@ -179,12 +185,24 @@ class Request
     public function method(): string
     {
         $method_field = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
+
         if ($method_field == 'POST') {
-            if (isset($_POST['_method'])) {
-                if (strtoupper($_POST['_method']) == "PUT") {
-                    $method_field = "PUT";
-                } elseif (strtoupper($_POST['_method']) == "DELETE") {
-                    $method_field = "DELETE";
+            $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+
+            if (stripos($contentType, 'application/json') !== false) {
+                $input = file_get_contents('php://input');
+                $data = json_decode($input, true);
+
+                if (isset($data['_method'])) {
+                    $override_method = strtoupper($data['_method']);
+                    if (in_array($override_method, ['PUT', 'DELETE', 'PATCH'])) {
+                        $method_field = $override_method;
+                    }
+                }
+            } elseif (isset($_POST['_method'])) {
+                $override_method = strtoupper($_POST['_method']);
+                if (in_array($override_method, ['PUT', 'DELETE', 'PATCH'])) {
+                    $method_field = $override_method;
                 }
             }
         }

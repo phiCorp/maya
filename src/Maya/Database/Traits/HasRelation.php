@@ -5,7 +5,7 @@ namespace Maya\Database\Traits;
 trait HasRelation
 {
 
-    protected function hasOne($model, $foreignKey, $localKey)
+    protected function hasOne($model, $foreignKey = 'id', $localKey = 'id')
     {
         if ($this->prop[$this->primaryKey]) {
             $modelObject = new $model();
@@ -26,7 +26,7 @@ trait HasRelation
         return null;
     }
 
-    protected function hasMany($model, $foreignKey, $otherKey)
+    protected function hasMany($model, $foreignKey = 'id', $otherKey = 'id')
     {
         if ($this->prop[$this->primaryKey]) {
             $modelObject = new $model;
@@ -43,7 +43,7 @@ trait HasRelation
         return $this;
     }
 
-    protected function belongsTo($model, $foreignKey, $localKey)
+    protected function belongsTo($model, $foreignKey = 'id', $localKey = 'id')
     {
         if ($this->prop[$this->primaryKey]) {
             $modelObject = new $model();

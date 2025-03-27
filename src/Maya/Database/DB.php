@@ -9,7 +9,7 @@ use PDO;
 
 class DB extends Model
 {
-    protected $table = "";
+    protected string $table = "";
     public static function tableExist($name): bool
     {
         $stmt = Connection::getConnection()->prepare("SHOW TABLES LIKE :table_name");

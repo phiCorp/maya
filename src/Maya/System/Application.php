@@ -25,6 +25,14 @@ use Maya\Support\Session;
 use Maya\Support\Token;
 use Maya\Support\URL;
 use Maya\View\View;
+use PhpParser\Node;
+use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitorAbstract;
+use PhpParser\ParserFactory;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
+use RuntimeException;
 use Throwable;
 
 class Application extends Container
@@ -56,6 +64,9 @@ class Application extends Container
         $this->registerServices();
         $this->initialSettings();
         $this->loadProviders();
+        if (config('APP.CHECK_UNUSED_VARIABLES', false)) {
+            $this->allUnusedVariables();
+        }
         if (PHP_SAPI !== 'cli') {
             $this->routing();
         }
@@ -327,6 +338,88 @@ class Application extends Container
         foreach ($services as $alias => [$class, $method]) {
             $this->$method($class, $class);
             $this->alias($class, $alias);
+        }
+    }
+
+    private function allUnusedVariables()
+    {
+        $directory = new RecursiveDirectoryIterator($this->appPath());
+        $iterator = new RecursiveIteratorIterator($directory);
+        $phpFiles = new RegexIterator($iterator, '/\.php$/i');
+
+        $parser = (new ParserFactory())->createForHostVersion();
+
+        $skipVars = [
+            '$this',
+            '$table',
+            '$fillable',
+            '$guarded',
+            '$casts',
+            '$dates',
+            '$hidden',
+            '$_SERVER',
+            '$_GET',
+            '$_POST',
+            '$_FILES',
+            '$_COOKIE',
+            '$_SESSION',
+            '$_REQUEST',
+            '$_ENV'
+        ];
+
+        foreach ($phpFiles as $file) {
+            $content = file_get_contents($file->getPathname());
+
+            try {
+                $ast = $parser->parse($content);
+            } catch (Exception $e) {
+                continue;
+            }
+
+            $declared = [];
+            $used = [];
+
+            $visitor = new class($declared, $used, $skipVars) extends NodeVisitorAbstract {
+                private $declared;
+                private $used;
+                private $skipVars;
+
+                public function __construct(&$declared, &$used, $skipVars)
+                {
+                    $this->declared = &$declared;
+                    $this->used = &$used;
+                    $this->skipVars = $skipVars;
+                }
+
+                public function enterNode(Node $node)
+                {
+                    if ($node instanceof Node\Expr\Variable && is_string($node->name)) {
+                        $varName = '$' . $node->name;
+
+                        if (in_array($varName, $this->skipVars)) {
+                            return;
+                        }
+
+                        if (!isset($this->declared[$varName])) {
+                            $this->declared[$varName] = $node->getStartLine();
+                        } else {
+                            $this->used[$varName] = true;
+                        }
+                    }
+                }
+            };
+
+            $traverser = new NodeTraverser();
+            $traverser->addVisitor($visitor);
+            $traverser->traverse($ast);
+
+            foreach ($declared as $varName => $vLine) {
+                if (!isset($used[$varName])) {
+                    throw new RuntimeException(
+                        "Unused variable {$varName} in {$file->getPathname()}:{$vLine}"
+                    );
+                }
+            }
         }
     }
 }
