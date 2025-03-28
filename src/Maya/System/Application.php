@@ -38,7 +38,7 @@ use Throwable;
 class Application extends Container
 {
     /** @var string The Davinci framework version. */
-    const VERSION = '1.3.1';
+    const VERSION = '1.3.3';
 
     protected $basePath;
     protected $configPath;
